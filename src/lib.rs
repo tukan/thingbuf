@@ -249,6 +249,7 @@ impl Core {
                                 Some(state & HAS_READER | next_state)
                             })
                             .unwrap_or_else(|_| unreachable!()));
+                        tail = next_tail;
                         backoff.spin();
                         continue;
                     }
@@ -405,6 +406,7 @@ impl Core {
                 match test_dbg!(self.head.compare_exchange(head, next_head, SeqCst, Acquire)) {
                     Ok(_) => {
                         test_println!("skipped head slot [{}], new head={}", idx, next_head);
+                        head = next_head;
                     }
                     Err(actual) => {
                         test_println!(
