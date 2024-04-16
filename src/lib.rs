@@ -310,9 +310,9 @@ impl Core {
                 return Err(TrySendError::Full(()));
             }
             // if the current state is marked as data written by the current (or even future)
-            // generation we can spin as probably our tail is behind the actual tail
-            // but if the state is marked as data written by the previous generation and nobody
-            // is reading it then we don't have any available slots
+            // generation, we can spin, as our tail is probably behind the actual tail.
+            // however, if the state is marked as data written by the previous generation and nobody
+            // is reading it, then we don't have any available slots.
             let (tail_idx, tail_gen) = self.idx_gen(tail);
             let (state_idx, state_gen) = self.idx_gen(state);
             if test_dbg!(state_idx == tail_idx + 1) && test_dbg!(state_gen < tail_gen) {
