@@ -314,8 +314,8 @@ impl Core {
             // but if the state is marked as data written by the previous generation and nobody
             // is reading it then we don't have any available slots
             let (tail_idx, tail_gen) = self.idx_gen(tail);
-            let (state_ix, state_gen) = self.idx_gen(state);
-            if test_dbg!(state_ix == tail_idx + 1 && state_gen < tail_gen) {
+            let (state_idx, state_gen) = self.idx_gen(state);
+            if test_dbg!(state_idx == tail_idx + 1) && test_dbg!(state_gen < tail_gen) {
                 test_println!("channel full");
                 return Err(TrySendError::Full(()));
             }
