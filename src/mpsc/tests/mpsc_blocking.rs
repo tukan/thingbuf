@@ -453,6 +453,8 @@ fn tx_close_drains_queue() {
     });
 }
 
+// Reproduces https://github.com/hawkw/thingbuf/issues/83
+// Pushing to a thingbuf should not hang when the buffer is full.
 #[test]
 fn test_full() {
     loom::model(|| {
