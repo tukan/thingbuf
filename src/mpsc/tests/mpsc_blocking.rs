@@ -1,7 +1,7 @@
 use super::*;
 use crate::loom::{self, alloc::Track, thread};
-use crate::mpsc::blocking;
 use crate::mpsc::blocking::RecvRef;
+use crate::mpsc::{blocking, errors};
 
 #[test]
 #[cfg_attr(ci_skip_slow_models, ignore)]
@@ -450,5 +450,38 @@ fn tx_close_drains_queue() {
         }
 
         producer.join().unwrap();
+    });
+}
+
+#[test]
+fn test_full() {
+    loom::model(|| {
+        let (tx, rx) = channel(4);
+        let p1 = {
+            let tx = tx.clone();
+            thread::spawn(move || loop {
+                match tx.try_send(1) {
+                    Ok(_) => {}
+                    Err(errors::TrySendError::Full(_)) => break,
+                    Err(err) => assert!(false, "unexpected error: {:?}", err),
+                }
+                thread::yield_now();
+            })
+        };
+
+        let p2 = {
+            let tx = tx.clone();
+            thread::spawn(move || loop {
+                match tx.try_send(2) {
+                    Ok(_) => {}
+                    Err(errors::TrySendError::Full(_)) => break,
+                    Err(err) => assert!(false, "unexpected error: {:?}", err),
+                }
+                thread::yield_now();
+            })
+        };
+
+        p1.join().unwrap();
+        p2.join().unwrap();
     });
 }
